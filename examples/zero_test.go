@@ -1,6 +1,7 @@
 package main
 
 import (
+	os "os"
 	"testing"
 
 	"github.com/anatol/devmapper.go"
@@ -26,4 +27,23 @@ func TestZeroTarget(t *testing.T) {
 		PropTablesPresent: "LIVE",
 		PropUUID:          uuid,
 	})
+
+	mapper := "/dev/mapper/" + name
+	if err := waitForFile(mapper); err != nil {
+		t.Fatal(err)
+	}
+
+	data, err := os.ReadFile(mapper)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if len(data) != 200*devmapper.SectorSize {
+		t.Fatalf("expected size of the file %d, got %d", 200*devmapper.SectorSize, len(data))
+	}
+	for i, b := range data {
+		if b != 0 {
+			t.Fatalf("zero file must provide zeros, but got %d at index %d", b, i)
+		}
+	}
 }
