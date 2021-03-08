@@ -19,11 +19,11 @@ func Create(name string, uuid string) error {
 	return ioctl(unix.DM_DEV_CREATE, name, uuid, 0, false, nil)
 }
 
-func CreateAndLoad(name string, uuid string, table Table) error {
+func CreateAndLoad(name string, uuid string, tables ...Table) error {
 	if err := Create(name, uuid); err != nil {
 		return err
 	}
-	if err := Load(name, table); err != nil {
+	if err := Load(name, tables...); err != nil {
 		return err
 	}
 	return Resume(name)
@@ -41,8 +41,8 @@ func Resume(name string) error {
 	return ioctl(unix.DM_DEV_SUSPEND, name, "", 0, true, nil)
 }
 
-func Load(name string, table Table) error {
-	return ioctl(unix.DM_TABLE_LOAD, name, "", 0, false, []Table{table})
+func Load(name string, tables ...Table) error {
+	return ioctl(unix.DM_TABLE_LOAD, name, "", 0, false, tables)
 }
 
 func Rename(old, new string) error {
