@@ -12,7 +12,7 @@ func main() {
         Encryption:    "aes-xts-plain64",
         Key:           "babebabebabebabebabebabebabebabebabebabebabebabebabebabebabebabe",
         BackendDevice: "/dev/loop0",
-        Flags:         []string{"allow_discards"},
+        Flags:         []string{devmapper.CryptFlagAllowDiscards},
     }
     if err := devmapper.CreateAndLoad(name, uuid, c); err != nil {
         // handle error
@@ -45,7 +45,7 @@ func main() {
         Encryption:    "aes-xts-plain64",
         Key:           keyid,
         BackendDevice: "/dev/loop0",
-        Flags:         []string{"allow_discards"},
+        Flags:         []string{devmapper.CryptFlagAllowDiscards},
     }
     if err := devmapper.CreateAndLoad(name, uuid, c); err != nil {
         // handle error

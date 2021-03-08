@@ -35,7 +35,13 @@ func TestCryptTarget(t *testing.T) {
 		Encryption:    "aes-xts-plain64",
 		Key:           "babebabebabebabebabebabebabebabebabebabebabebabebabebabebabebabe",
 		BackendDevice: loop.Path(),
-		Flags:         []string{"allow_discards"},
+		Flags: []string{
+			devmapper.CryptFlagAllowDiscards,
+			devmapper.CryptFlagNoReadWorkqueue,
+			devmapper.CryptFlagNoWriteWorkqueue,
+			devmapper.CryptFlagSameCPUCrypt,
+			devmapper.CryptFlagSubmitFromCryptCPUs,
+		},
 	}
 	if err := devmapper.CreateAndLoad(name, uuid, c); err != nil {
 		t.Fatal(err)

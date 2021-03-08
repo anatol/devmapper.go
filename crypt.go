@@ -5,6 +5,15 @@ import (
 	"strings"
 )
 
+const (
+	// flags for crypt target
+	CryptFlagAllowDiscards       = "allow_discards"
+	CryptFlagSameCPUCrypt        = "same_cpu_crypt"
+	CryptFlagSubmitFromCryptCPUs = "submit_from_crypt_cpus"
+	CryptFlagNoReadWorkqueue     = "no_read_workqueue"
+	CryptFlagNoWriteWorkqueue    = "no_write_workqueue"
+)
+
 // CryptTable represents information needed for 'crypt' target creation
 type CryptTable struct {
 	StartSector, Length uint64
@@ -13,7 +22,7 @@ type CryptTable struct {
 	Encryption          string
 	Key                 string // it could be a plain key or keyID in the keystore as ":32:logon:foobarkey"
 	IVTweak             int
-	Flags               []string // Flags like allow_discards, same_cpu_crypt, ...
+	Flags               []string
 }
 
 func (c CryptTable) startSector() uint64 {
