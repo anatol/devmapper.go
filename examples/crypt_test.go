@@ -1,19 +1,40 @@
 package main
 
 import (
+	"os"
 	"testing"
 
 	"github.com/anatol/devmapper.go"
+	"github.com/tych0/go-losetup"
 )
 
 func TestCryptTarget(t *testing.T) {
 	name := "test.crypttarget"
 	uuid := "2f144136-b0de-4b51-b2eb-bd869cc39a6e"
+
+	dir := t.TempDir()
+	backingFile := dir + "/backing"
+	f, err := os.Create(backingFile)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer f.Close()
+
+	if err := f.Truncate(40 * 512); err != nil {
+		t.Fatal(err)
+	}
+
+	loop, err := losetup.Attach(backingFile, 0, false)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer loop.Detach()
+
 	c := devmapper.CryptTable{
-		Length:        600,
+		Length:        40,
 		Encryption:    "aes-xts-plain64",
 		Key:           "babebabebabebabebabebabebabebabebabebabebabebabebabebabebabebabe",
-		BackendDevice: "/dev/loop0",
+		BackendDevice: loop.Path(),
 		Flags:         []string{"allow_discards"},
 	}
 	if err := devmapper.CreateAndLoad(name, uuid, c); err != nil {
