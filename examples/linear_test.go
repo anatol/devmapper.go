@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"os"
 	"testing"
-	"time"
 
 	"github.com/anatol/devmapper.go"
 	"github.com/tych0/go-losetup"
@@ -60,8 +59,11 @@ func TestLinear(t *testing.T) {
 		PropUUID:          uuid,
 	})
 
-	time.Sleep(time.Second)
-	data, err := os.ReadFile("/dev/mapper/" + name)
+	mapper := "/dev/mapper/" + name
+	if err := waitForFile(mapper); err != nil {
+		t.Fatal(err)
+	}
+	data, err := os.ReadFile(mapper)
 	if err != nil {
 		t.Fatal(err)
 	}

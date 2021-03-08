@@ -2,9 +2,11 @@ package main
 
 import (
 	"fmt"
+	"os"
 	"os/exec"
 	"regexp"
 	"testing"
+	"time"
 )
 
 const (
@@ -42,4 +44,23 @@ func devInfo(name string) (map[string]string, error) {
 	}
 
 	return result, nil
+}
+
+func waitForFile(filename string) error {
+	timeout := 5 * time.Second
+
+	limit := time.Now().Add(timeout)
+	for {
+		_, err := os.Stat(filename)
+		if err == nil {
+			return nil // file is here
+		}
+		if !os.IsNotExist(err) {
+			return err
+		}
+		if time.Now().After(limit) {
+			return fmt.Errorf("timeout waiting for file %s", filename)
+		}
+		time.Sleep(5 * time.Millisecond)
+	}
 }

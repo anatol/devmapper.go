@@ -7,7 +7,6 @@ import (
 	"strconv"
 	"strings"
 	"testing"
-	"time"
 
 	"github.com/anatol/devmapper.go"
 	"github.com/tych0/go-losetup"
@@ -100,8 +99,11 @@ func TestJoinedDevices(t *testing.T) {
 		PropUUID:          uuid,
 	})
 
-	time.Sleep(time.Second)
-	data, err := os.ReadFile("/dev/mapper/" + name)
+	mapperFile := "/dev/mapper/" + name
+	if err := waitForFile(mapperFile); err != nil {
+		t.Fatal(err)
+	}
+	data, err := os.ReadFile(mapperFile)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -193,9 +195,12 @@ func TestSplitDevices(t *testing.T) {
 		PropUUID:          uuid2,
 	})
 
-	time.Sleep(time.Second)
+	mapper1 := "/dev/mapper/" + name1
+	if err := waitForFile(mapper1); err != nil {
+		t.Fatal(err)
+	}
 
-	data1, err := os.ReadFile("/dev/mapper/" + name1)
+	data1, err := os.ReadFile(mapper1)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -208,7 +213,12 @@ func TestSplitDevices(t *testing.T) {
 		t.Fatal("data read from the mapper differs from the backing file")
 	}
 
-	data2, err := os.ReadFile("/dev/mapper/" + name2)
+	mapper2 := "/dev/mapper/" + name2
+	if err := waitForFile(mapper2); err != nil {
+		t.Fatal(err)
+	}
+
+	data2, err := os.ReadFile(mapper2)
 	if err != nil {
 		t.Fatal(err)
 	}
