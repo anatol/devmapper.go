@@ -64,7 +64,7 @@ func TestJoinedDevices(t *testing.T) {
 		if _, err := f.WriteString(text); err != nil {
 			t.Fatal(err)
 		}
-		if err := f.Truncate(5 * 512); err != nil {
+		if err := f.Truncate(5 * devmapper.SectorSize); err != nil {
 			t.Fatal(err)
 		}
 
@@ -105,13 +105,13 @@ func TestJoinedDevices(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(data) != 15*512 {
-		t.Fatalf("invalid file length: expect %d, got %d", 15*512, len(data))
+	if len(data) != 15*devmapper.SectorSize {
+		t.Fatalf("invalid file length: expect %d, got %d", 15*devmapper.SectorSize, len(data))
 	}
-	expectedData := make([]byte, 15*512)
-	copy(expectedData[0*512:], "Hello, world 0 !!!")
-	copy(expectedData[5*512:], "Hello, world 1 !!!")
-	copy(expectedData[10*512:], "Hello, world 2 !!!")
+	expectedData := make([]byte, 15*devmapper.SectorSize)
+	copy(expectedData[0*devmapper.SectorSize:], "Hello, world 0 !!!")  // beginning of the 1st device
+	copy(expectedData[5*devmapper.SectorSize:], "Hello, world 1 !!!")  // beginning of the 2nd device
+	copy(expectedData[10*devmapper.SectorSize:], "Hello, world 2 !!!") // beginning of the 3rd device
 
 	if bytes.Compare(expectedData, data) != 0 {
 		t.Fatal("data read from the mapper differs from the backing file")
@@ -129,13 +129,13 @@ func TestSplitDevices(t *testing.T) {
 	}
 	defer f.Close()
 
-	if err := f.Truncate(50 * 512); err != nil {
+	if err := f.Truncate(50 * devmapper.SectorSize); err != nil {
 		t.Fatal(err)
 	}
 	if _, err := f.WriteAt([]byte("Hello, world 0 !!!"), 0); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := f.WriteAt([]byte("Hello, world 1 !!!"), 7*512); err != nil {
+	if _, err := f.WriteAt([]byte("Hello, world 1 !!!"), 5*devmapper.SectorSize+100); err != nil {
 		t.Fatal(err)
 	}
 
@@ -199,11 +199,11 @@ func TestSplitDevices(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(data1) != 5*512 {
-		t.Fatalf("invalid file length: expect %d, got %d", 5*512, len(data1))
+	if len(data1) != 5*devmapper.SectorSize {
+		t.Fatalf("invalid file length: expect %d, got %d", 5*devmapper.SectorSize, len(data1))
 	}
-	expectedData := make([]byte, 5*512)
-	copy(expectedData[0*512:], "Hello, world 0 !!!")
+	expectedData := make([]byte, 5*devmapper.SectorSize)
+	copy(expectedData, "Hello, world 0 !!!")
 	if bytes.Compare(expectedData, data1) != 0 {
 		t.Fatal("data read from the mapper differs from the backing file")
 	}
@@ -212,11 +212,11 @@ func TestSplitDevices(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(data2) != 45*512 {
-		t.Fatalf("invalid file length: expect %d, got %d", 45*512, len(data2))
+	if len(data2) != 45*devmapper.SectorSize {
+		t.Fatalf("invalid file length: expect %d, got %d", 45*devmapper.SectorSize, len(data2))
 	}
-	expectedData2 := make([]byte, 45*512)
-	copy(expectedData2[2*512:], "Hello, world 1 !!!")
+	expectedData2 := make([]byte, 45*devmapper.SectorSize)
+	copy(expectedData2[100:], "Hello, world 1 !!!")
 	if bytes.Compare(expectedData2, data2) != 0 {
 		t.Fatal("data read from the mapper differs from the backing file")
 	}

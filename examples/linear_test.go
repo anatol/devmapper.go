@@ -65,10 +65,10 @@ func TestLinear(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(data) != 15*512 {
-		t.Fatalf("invalid file length: expect %d, got %d", 15*512, len(data))
+	if len(data) != 15*devmapper.SectorSize {
+		t.Fatalf("invalid file length: expect %d, got %d", 15*devmapper.SectorSize, len(data))
 	}
-	expectedData := make([]byte, 15*512)
+	expectedData := make([]byte, 15*devmapper.SectorSize)
 	copy(expectedData, text)
 
 	if bytes.Compare(expectedData, data) != 0 {

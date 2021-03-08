@@ -6,6 +6,9 @@ import (
 	"golang.org/x/sys/unix"
 )
 
+// device size calculation happens in sector units of size 512
+const SectorSize = 512
+
 type Table interface {
 	startSector() uint64
 	length() uint64

@@ -20,7 +20,7 @@ func TestCryptTarget(t *testing.T) {
 	}
 	defer f.Close()
 
-	if err := f.Truncate(40 * 512); err != nil {
+	if err := f.Truncate(40 * devmapper.SectorSize); err != nil {
 		t.Fatal(err)
 	}
 
