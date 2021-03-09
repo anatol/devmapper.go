@@ -9,18 +9,12 @@ import (
 	"golang.org/x/sys/unix"
 )
 
-// ioctl executes a device mapper ioctl
+// ioctlTable executes a device mapper ioctl with a set of table specs passed as a payload.
 // udevEvent is a boolean field that sets DM_UDEV_PRIMARY_SOURCE_FLAG udev flag.
 // This flag is later processed by rules at /usr/lib/udev/rules.d/10-dm.rules
 // Per devicecrypt sourcecode only RESUME, REMOVE, RENAME operations need to have DM_UDEV_PRIMARY_SOURCE_FLAG
 // flag set.
-func ioctl(cmd uint64, name string, uuid string, flags uint32, primaryUdevEvent bool, tables []Table) error {
-	controlFile, err := os.Open("/dev/mapper/control")
-	if err != nil {
-		return err
-	}
-	defer controlFile.Close()
-
+func ioctlTable(cmd uintptr, name string, uuid string, flags uint32, primaryUdevEvent bool, tables []Table) error {
 	const (
 		// allocate buffer large enough for dmioctl + specs
 		alignment = 8
@@ -59,9 +53,9 @@ func ioctl(cmd uint64, name string, uuid string, flags uint32, primaryUdevEvent 
 		length += roundUp(len(spec)+1, alignment) // adding 1 for terminating NUL, then align the data
 	}
 
-	data := make([]byte, length, length)
+	data := make([]byte, length)
 	var idx uintptr
-	ioctlData := (*unix.DmIoctl)(unsafe.Pointer(&data[idx]))
+	ioctlData := (*unix.DmIoctl)(unsafe.Pointer(&data[0]))
 	ioctlData.Version = [...]uint32{4, 0, 0} // minimum required version
 	copy(ioctlData.Name[:], name)
 	copy(ioctlData.Uuid[:], uuid)
@@ -86,13 +80,24 @@ func ioctl(cmd uint64, name string, uuid string, flags uint32, primaryUdevEvent 
 		idx += specSize
 	}
 
+	return ioctl(cmd, data)
+}
+
+func ioctl(cmd uintptr, data []byte) error {
+	controlFile, err := os.Open("/dev/mapper/control")
+	if err != nil {
+		return err
+	}
+	defer controlFile.Close()
+
 	_, _, errno := syscall.Syscall(syscall.SYS_IOCTL,
 		controlFile.Fd(),
-		uintptr(cmd),
+		cmd,
 		uintptr(unsafe.Pointer(&data[0])),
 	)
 	if errno != 0 {
 		return os.NewSyscallError(fmt.Sprintf("dm ioctl (cmd=0x%x)", cmd), errno)
 	}
+
 	return nil
 }

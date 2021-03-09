@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"fmt"
 	"os"
+	"os/exec"
+	"regexp"
 	"strconv"
 	"strings"
 	"testing"
@@ -229,5 +231,35 @@ func TestSplitDevices(t *testing.T) {
 	copy(expectedData2[100:], "Hello, world 1 !!!")
 	if bytes.Compare(expectedData2, data2) != 0 {
 		t.Fatal("data read from the mapper differs from the backing file")
+	}
+}
+
+func TestGetVersion(t *testing.T) {
+	output, err := exec.Command("dmsetup", "version").Output()
+	if err != nil {
+		t.Fatal(err)
+	}
+	re := regexp.MustCompile(`Driver version:\W+(\d+)\.(\d+)\.(\d+)`)
+	matches := re.FindAllStringSubmatch(string(output), -1)
+	major, err := strconv.Atoi(matches[0][1])
+	if err != nil {
+		t.Fatal(err)
+	}
+	minor, err := strconv.Atoi(matches[0][2])
+	if err != nil {
+		t.Fatal(err)
+	}
+	patch, err := strconv.Atoi(matches[0][3])
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	gotMajor, gotMinor, gotPatch, err := devmapper.GetVersion()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if uint32(major) != gotMajor || uint32(minor) != gotMinor || uint32(patch) != gotPatch {
+		t.Fatalf("device mapper version mismatch: got %d.%d.%d expect %d.%d.%d", gotMajor, gotMinor, gotPatch, major, minor, patch)
 	}
 }
