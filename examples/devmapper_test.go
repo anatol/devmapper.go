@@ -84,7 +84,7 @@ func TestJoinedDevices(t *testing.T) {
 		targets = append(targets, l)
 	}
 
-	if err := devmapper.CreateAndLoad(name, uuid, targets...); err != nil {
+	if err := devmapper.CreateAndLoad(name, uuid, 0, targets...); err != nil {
 		t.Fatal(err)
 	}
 	defer devmapper.Remove(name)
@@ -156,7 +156,7 @@ func TestSplitDevices(t *testing.T) {
 		BackendDevice: loop.Path(),
 		BackendOffset: 0,
 	}
-	if err := devmapper.CreateAndLoad(name1, uuid1, l1); err != nil {
+	if err := devmapper.CreateAndLoad(name1, uuid1, 0, l1); err != nil {
 		t.Fatal(err)
 	}
 	defer devmapper.Remove(name1)
@@ -168,7 +168,7 @@ func TestSplitDevices(t *testing.T) {
 		BackendDevice: loop.Path(),
 		BackendOffset: 5,
 	}
-	if err := devmapper.CreateAndLoad(name2, uuid2, l2); err != nil {
+	if err := devmapper.CreateAndLoad(name2, uuid2, 0, l2); err != nil {
 		t.Fatal(err)
 	}
 	defer devmapper.Remove(name2)

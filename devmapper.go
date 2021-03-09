@@ -9,6 +9,10 @@ import (
 // device size calculation happens in sector units of size 512
 const SectorSize = 512
 
+const (
+	ReadOnlyFlag = unix.DM_READONLY_FLAG
+)
+
 type Table interface {
 	startSector() uint64
 	length() uint64
@@ -25,11 +29,12 @@ func Create(name string, uuid string) error {
 }
 
 // CreateAndLoad creates, loads the provided tables and resumes the device.
-func CreateAndLoad(name string, uuid string, tables ...Table) error {
+func CreateAndLoad(name string, uuid string, flags uint32, tables ...Table) error {
 	if err := Create(name, uuid); err != nil {
 		return err
 	}
-	if err := Load(name, tables...); err != nil {
+	if err := Load(name, flags, tables...); err != nil {
+		_ = Remove(name)
 		return err
 	}
 	return Resume(name)
@@ -51,8 +56,9 @@ func Resume(name string) error {
 }
 
 // Load loads given table into the device
-func Load(name string, tables ...Table) error {
-	return ioctlTable(unix.DM_TABLE_LOAD, name, "", 0, false, tables)
+func Load(name string, flags uint32, tables ...Table) error {
+	flags &= unix.DM_READONLY_FLAG
+	return ioctlTable(unix.DM_TABLE_LOAD, name, "", flags, false, tables)
 }
 
 // Rename renames the device

@@ -43,7 +43,7 @@ func TestCryptTarget(t *testing.T) {
 			devmapper.CryptFlagSubmitFromCryptCPUs,
 		},
 	}
-	if err := devmapper.CreateAndLoad(name, uuid, c); err != nil {
+	if err := devmapper.CreateAndLoad(name, uuid, 0, c); err != nil {
 		t.Fatal(err)
 	}
 	defer devmapper.Remove(name)

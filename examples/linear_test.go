@@ -42,7 +42,7 @@ func TestLinear(t *testing.T) {
 		Length:        15,
 		BackendDevice: loop.Path(),
 	}
-	if err := devmapper.CreateAndLoad(name, uuid, l); err != nil {
+	if err := devmapper.CreateAndLoad(name, uuid, 0, l); err != nil {
 		t.Fatal(err)
 	}
 	defer devmapper.Remove(name)
