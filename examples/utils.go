@@ -1,6 +1,8 @@
 package main
 
 import (
+	"crypto/rand"
+	"encoding/hex"
 	"fmt"
 	"os"
 	"os/exec"
@@ -35,8 +37,12 @@ func devInfo(name string) (map[string]string, error) {
 		return nil, fmt.Errorf("dminfo(%s): %v\n%s", name, err, out)
 	}
 
+	return parseProperties(out)
+}
+
+func parseProperties(data []byte) (map[string]string, error) {
 	re := regexp.MustCompile(`([\w ,]+):\W*([^\n]+)`)
-	matches := re.FindAllStringSubmatch(string(out), -1)
+	matches := re.FindAllStringSubmatch(string(data), -1)
 
 	result := make(map[string]string)
 	for _, m := range matches {
@@ -63,4 +69,12 @@ func waitForFile(filename string) error {
 		}
 		time.Sleep(5 * time.Millisecond)
 	}
+}
+
+func randomHex(n int) (string, error) {
+	bytes := make([]byte, n)
+	if _, err := rand.Read(bytes); err != nil {
+		return "", err
+	}
+	return hex.EncodeToString(bytes), nil
 }
