@@ -9,7 +9,7 @@ import (
 type LinearTable struct {
 	StartSector, Length uint64
 	BackendDevice       string
-	BackendOffset       int
+	BackendOffset       uint64
 }
 
 func (l LinearTable) startSector() uint64 {
@@ -25,6 +25,6 @@ func (l LinearTable) targetType() string {
 }
 
 func (l LinearTable) buildSpec() string {
-	args := []string{l.BackendDevice, strconv.Itoa(l.BackendOffset)}
+	args := []string{l.BackendDevice, strconv.FormatUint(l.BackendOffset, 10)}
 	return strings.Join(args, " ")
 }
