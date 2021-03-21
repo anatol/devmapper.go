@@ -2,8 +2,9 @@ package devmapper
 
 import (
 	"fmt"
-	"golang.org/x/sys/unix"
 	"unsafe"
+
+	"golang.org/x/sys/unix"
 )
 
 // device size calculation happens in sector units of size 512
@@ -75,6 +76,106 @@ func SetUUID(name, uuid string) error {
 // Remove remove the device and destroys its tables.
 func Remove(name string) error {
 	return ioctlTable(unix.DM_DEV_REMOVE, name, "", 0, true, nil)
+}
+
+type ListItem struct {
+	DevNo uint64
+	Name  string
+}
+
+func List() ([]ListItem, error) {
+	bufferSize := 4096
+
+retry:
+	data := make([]byte, bufferSize) // unix.SizeofDmIoctl info + space for output params
+	ioctlData := (*unix.DmIoctl)(unsafe.Pointer(&data[0]))
+	ioctlData.Version = [...]uint32{4, 0, 0} // minimum required version
+	ioctlData.Data_size = uint32(bufferSize)
+	ioctlData.Data_start = unix.SizeofDmIoctl
+
+	if err := ioctl(unix.DM_LIST_DEVICES, data); err != nil {
+		return nil, err
+	}
+
+	if ioctlData.Flags&unix.DM_BUFFER_FULL_FLAG != 0 {
+		if bufferSize >= 1024*1024 { // 1 MB
+			return nil, fmt.Errorf("ioctl(DM_LIST_DEVICES): output data is too big")
+
+		}
+		bufferSize *= 4
+		goto retry // retry with bigger buffer
+	}
+
+	result := make([]ListItem, 0)
+
+	type dmNameList struct { // reflects struct dm_name_list
+		devNo      uint64
+		offsetNext uint32
+	}
+	offset := ioctlData.Data_start
+	for offset < ioctlData.Data_size {
+		item := (*dmNameList)(unsafe.Pointer(&data[offset]))
+		nameData := data[offset+12:] // 12 is sum of the dmNameList fields, at this offset "name" field starts
+		if item.offsetNext != 0 {
+			nameData = nameData[:item.offsetNext] // make sure that nameData never captures data from the next item
+		}
+		dev := ListItem{
+			DevNo: item.devNo,
+			Name:  fixedArrayToString(nameData),
+		}
+		result = append(result, dev)
+
+		if item.offsetNext == 0 {
+			break
+		}
+		offset += item.offsetNext
+	}
+
+	return result, nil
+}
+
+type DeviceInfo struct {
+	Name       string
+	UUID       string
+	DevNo      uint64
+	OpenCount  int32
+	TargetsNum uint32
+	Flags      uint32 // combination of unix.DM_*_FLAG
+}
+
+// InfoByName returns device information by its name
+func InfoByName(name string) (*DeviceInfo, error) {
+	return info(name, 0)
+}
+
+// InfoByDevno returns device mapper information by its block device number (major/minor)
+func InfoByDevno(devno uint64) (*DeviceInfo, error) {
+	return info("", devno)
+}
+
+func info(name string, devno uint64) (*DeviceInfo, error) {
+	data := make([]byte, unix.SizeofDmIoctl)
+	ioctlData := (*unix.DmIoctl)(unsafe.Pointer(&data[0]))
+	ioctlData.Version = [...]uint32{4, 0, 0} // minimum required version
+	copy(ioctlData.Name[:], name)
+	ioctlData.Dev = devno
+	ioctlData.Data_size = unix.SizeofDmIoctl
+	ioctlData.Data_start = unix.SizeofDmIoctl
+
+	if err := ioctl(unix.DM_DEV_STATUS, data); err != nil {
+		return nil, err
+	}
+
+	const flagsVisibleToUser = unix.DM_READONLY_FLAG | unix.DM_SUSPEND_FLAG | unix.DM_ACTIVE_PRESENT_FLAG | unix.DM_INACTIVE_PRESENT_FLAG | unix.DM_DEFERRED_REMOVE | unix.DM_INTERNAL_SUSPEND_FLAG
+	info := DeviceInfo{
+		Name:       fixedArrayToString(ioctlData.Name[:]),
+		UUID:       fixedArrayToString(ioctlData.Uuid[:]),
+		DevNo:      ioctlData.Dev,
+		OpenCount:  ioctlData.Open_count,
+		TargetsNum: ioctlData.Target_count,
+		Flags:      ioctlData.Flags & flagsVisibleToUser,
+	}
+	return &info, nil
 }
 
 // GetVersion returns version for the dm-mapper kernel interface

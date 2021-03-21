@@ -12,14 +12,23 @@ import (
 
 	"github.com/anatol/devmapper.go"
 	"github.com/tych0/go-losetup"
+	"golang.org/x/sys/unix"
 )
 
 func TestCreate(t *testing.T) {
+	name2 := "test.create2"
+	uuid2 := "634d7039-f339-4bbb-860a-e8a8c865a722"
+	if err := devmapper.Create(name2, uuid2); err != nil {
+		t.Fatal(err)
+	}
+	defer devmapper.Remove(name2)
+
 	name := "test.create"
 	uuid := "634d7039-f339-4bbb-860a-e8a8c865a729"
 	if err := devmapper.Create(name, uuid); err != nil {
 		t.Fatal(err)
 	}
+	defer devmapper.Remove(name)
 
 	// check the target exists
 	got, err := devInfo(name)
@@ -32,6 +41,52 @@ func TestCreate(t *testing.T) {
 		PropTablesPresent: "None",
 		PropUUID:          uuid,
 	})
+
+	list, err := devmapper.List()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(list) < 2 { // this test can be run as root at a developer machine, and it can be more mapper devices not related to this test
+		t.Fatalf("execpeted 2 mapper devices, got %d", len(list))
+	}
+	found := false
+	for _, l := range list {
+		if l.Name == name {
+			expectedDevNo := got["Major, minor"]
+			gotDevNo := fmt.Sprintf("%d, %d", unix.Major(l.DevNo), unix.Minor(l.DevNo))
+			if expectedDevNo != gotDevNo {
+				t.Fatalf("device id mismatch for %s: expected '%s', got '%s'", name, expectedDevNo, gotDevNo)
+			}
+
+			found = true
+			break
+		}
+	}
+	if !found {
+		t.Fatalf("devmapper.List() did not find a device with name %s", name)
+	}
+
+	info, err := devmapper.InfoByName(name)
+	if err != nil {
+		t.Fatal(err)
+	}
+	checkDevInfo(t, got, map[string]string{
+		PropName:       info.Name,
+		PropUUID:       info.UUID,
+		PropDevId:      fmt.Sprintf("%d, %d", unix.Major(info.DevNo), unix.Minor(info.DevNo)),
+		PropOpenCount:  strconv.Itoa(int(info.OpenCount)),
+		PropTargetsNum: strconv.Itoa(int(info.TargetsNum)),
+		PropState:      "ACTIVE",
+	})
+
+	infoByDev, err := devmapper.InfoByDevno(info.DevNo)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if infoByDev.Name != name {
+		t.Fatalf("requested device with devno (%d,%d). expected name %s, got %s",
+			unix.Major(info.DevNo), unix.Minor(info.DevNo), name, infoByDev.Name)
+	}
 
 	if err := devmapper.Remove(name); err != nil {
 		t.Fatal(err)
