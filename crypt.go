@@ -7,11 +7,17 @@ import (
 
 const (
 	// flags for crypt target
-	CryptFlagAllowDiscards       = "allow_discards"
-	CryptFlagSameCPUCrypt        = "same_cpu_crypt"
+
+	// CryptFlagAllowDiscards is an equivalent of 'allow_discards' crypt option
+	CryptFlagAllowDiscards = "allow_discards"
+	// CryptFlagSameCPUCrypt is an equivalent of 'same_cpu_crypt' crypt option
+	CryptFlagSameCPUCrypt = "same_cpu_crypt"
+	// CryptFlagSubmitFromCryptCPUs is an equivalent of 'submit_from_crypt_cpus' crypt option
 	CryptFlagSubmitFromCryptCPUs = "submit_from_crypt_cpus"
-	CryptFlagNoReadWorkqueue     = "no_read_workqueue"
-	CryptFlagNoWriteWorkqueue    = "no_write_workqueue"
+	// CryptFlagNoReadWorkqueue is an equivalent of 'no_read_workqueue' crypt option
+	CryptFlagNoReadWorkqueue = "no_read_workqueue"
+	// CryptFlagNoWriteWorkqueue is an equivalent of 'no_write_workqueue' crypt option
+	CryptFlagNoWriteWorkqueue = "no_write_workqueue"
 )
 
 // CryptTable represents information needed for 'crypt' target creation

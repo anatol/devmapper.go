@@ -7,13 +7,15 @@ import (
 	"golang.org/x/sys/unix"
 )
 
-// device size calculation happens in sector units of size 512
+// SectorSize is a device size used for devmapper calculations. Currently this value hardcoded to 512.
 const SectorSize = 512
 
 const (
+	// ReadOnlyFlag is a devmapper readonly flag value
 	ReadOnlyFlag = unix.DM_READONLY_FLAG
 )
 
+// Table is a type to represent different devmapper targets like 'zero', 'crypt', ...
 type Table interface {
 	startSector() uint64
 	length() uint64
@@ -134,6 +136,7 @@ retry:
 	return result, nil
 }
 
+// DeviceInfo is a type that holds devmapper device information
 type DeviceInfo struct {
 	Name       string
 	UUID       string
