@@ -1,25 +1,22 @@
 package test
 
 import (
-	os "os"
+	"os"
 	"testing"
 
 	"github.com/anatol/devmapper.go"
+	"github.com/stretchr/testify/require"
 )
 
 func TestZeroTarget(t *testing.T) {
 	name := "test.zerotarget"
 	uuid := "2fa44836-b0de-4b51-b2eb-bd811cc39a6e"
 	z := devmapper.ZeroTable{Length: 200}
-	if err := devmapper.CreateAndLoad(name, uuid, 0, z); err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, devmapper.CreateAndLoad(name, uuid, 0, z))
 	defer devmapper.Remove(name)
 
 	got, err := devInfo(name)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 	checkDevInfo(t, got, map[string]string{
 		PropName:          name,
 		PropTargetsNum:    "1",
@@ -29,21 +26,11 @@ func TestZeroTarget(t *testing.T) {
 	})
 
 	mapper := "/dev/mapper/" + name
-	if err := waitForFile(mapper); err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, waitForFile(mapper))
 
 	data, err := os.ReadFile(mapper)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
-	if len(data) != 200*devmapper.SectorSize {
-		t.Fatalf("expected size of the file %d, got %d", 200*devmapper.SectorSize, len(data))
-	}
-	for i, b := range data {
-		if b != 0 {
-			t.Fatalf("zero file must provide zeros, but got %d at index %d", b, i)
-		}
-	}
+	zeros := make([]byte, 200*devmapper.SectorSize)
+	require.Equal(t, zeros, data)
 }

@@ -1,16 +1,14 @@
 package devmapper
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/stretchr/testify/require"
+)
 
 func TestRundup(t *testing.T) {
-	compare := func(expected, got int) {
-		if expected != got {
-			t.Fatalf("expected %v, got %v", expected, got)
-		}
-	}
-
-	compare(0, roundUp(0, 8))
-	compare(8, roundUp(1, 8))
+	require.Equal(t, 0, roundUp(0, 8))
+	require.Equal(t, 8, roundUp(1, 8))
 }
 
 func TestFixedArrayToString(t *testing.T) {
@@ -18,9 +16,7 @@ func TestFixedArrayToString(t *testing.T) {
 
 	check := func(input []byte, expected string) {
 		str := fixedArrayToString(input)
-		if str != expected {
-			t.Fatalf("Expected string %v, got %v", expected, str)
-		}
+		require.Equal(t, expected, str)
 	}
 
 	check([]byte{}, "")

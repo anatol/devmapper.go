@@ -1,13 +1,12 @@
 package test
 
 import (
-	"bytes"
-	"errors"
 	"os"
 	"os/exec"
 	"testing"
 
 	"github.com/anatol/devmapper.go"
+	"github.com/stretchr/testify/require"
 	"github.com/tych0/go-losetup"
 	"golang.org/x/sys/unix"
 )
@@ -17,53 +16,34 @@ func TestVerity(t *testing.T) {
 
 	// Setup data device
 	d, err := os.Create(dir + "/data")
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 	defer d.Close()
 	// Write some data there
-	if _, err := d.WriteString("Hello verity!!!!"); err != nil {
-		t.Fatal(err)
-	}
+	_, err = d.WriteString("Hello verity!!!!")
+	require.NoError(t, err)
 
 	dataSize := 4096 * devmapper.SectorSize
-	if err := d.Truncate(int64(dataSize)); err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, d.Truncate(int64(dataSize)))
 	dLoop, err := losetup.Attach(dir+"/data", 0, false)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 	defer dLoop.Detach()
 
 	// Setup hash device
 	h, err := os.Create(dir + "/hash")
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 	defer h.Close()
-	if err := h.Truncate(100 * devmapper.SectorSize); err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, h.Truncate(100*devmapper.SectorSize))
 	hLoop, err := losetup.Attach(dir+"/hash", 0, false)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 	defer hLoop.Detach()
 
 	// format hash device
 	salt, err := randomHex(32)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 	out, err := exec.Command("veritysetup", "format", "--no-superblock", "--salt", salt, dLoop.Path(), hLoop.Path()).Output()
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 	props, err := parseProperties(out)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
 	v := devmapper.VerityTable{
 		Length:        4096,
@@ -79,15 +59,11 @@ func TestVerity(t *testing.T) {
 	}
 	name := "test.verity"
 	uuid := "79639465-407e-4af6-b76b-d98a70c0d5d3"
-	if err := devmapper.CreateAndLoad(name, uuid, devmapper.ReadOnlyFlag, v); err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, devmapper.CreateAndLoad(name, uuid, devmapper.ReadOnlyFlag, v))
 	defer devmapper.Remove(name)
 
 	got, err := devInfo(name)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 	checkDevInfo(t, got, map[string]string{
 		PropName:          name,
 		PropTargetsNum:    "1",
@@ -97,32 +73,20 @@ func TestVerity(t *testing.T) {
 	})
 
 	mapper := "/dev/mapper/" + name
-	if err := waitForFile(mapper); err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, waitForFile(mapper))
 
 	// Now verify the data read from the mapper
 	data, err := os.ReadFile(mapper)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 	expectedData := make([]byte, 4096*devmapper.SectorSize)
 	copy(expectedData, "Hello verity!!!!")
-	if bytes.Compare(expectedData, data) != 0 {
-		t.Fatal("data read from the mapper differs from the backing file")
-	}
+	require.Equal(t, expectedData, data, "data read from the mapper differs from the backing file")
 
 	// Now corrupt the backing file (flip the first character from H to h)
 	// verity should fail
-	if _, err := d.WriteAt([]byte{'h'}, 0); err != nil {
-		t.Fatal(err)
-	}
-	if _, err := os.ReadFile(mapper); err == nil {
-		t.Fatal("expected EIO if backing device is corrupted")
-	} else {
-		e := errors.Unwrap(err)
-		if e != unix.EIO {
-			t.Fatalf("unexpected error on verity corruption: %v", err)
-		}
-	}
+	_, err = d.WriteAt([]byte{'h'}, 0)
+	require.NoError(t, err)
+	_, err = os.ReadFile(mapper)
+	require.NotNil(t, "expected EIO if backing device is corrupted")
+	require.ErrorIs(t, err, unix.EIO, "unexpected error on verity corruption")
 }

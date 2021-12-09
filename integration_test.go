@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/anatol/vmtest"
+	"github.com/stretchr/testify/require"
 	"github.com/tmc/scp"
 	"golang.org/x/crypto/ssh"
 )
@@ -20,9 +21,7 @@ func TestWithQemu(t *testing.T) {
 	t.Parallel()
 
 	wd, err := os.Getwd()
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
 	cmd := exec.Command("go", "test", "-c", "-o", "devmapper.go.test")
 	cmd.Dir = filepath.Join(wd, "examples")
@@ -31,9 +30,7 @@ func TestWithQemu(t *testing.T) {
 		cmd.Stdout = os.Stdout
 		cmd.Stderr = os.Stderr
 	}
-	if err := cmd.Run(); err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, cmd.Run())
 	defer os.Remove("examples/devmapper.go.test")
 
 	// These integration tests use QEMU with a statically-compiled kernel (to avoid inintramfs) and a specially
@@ -54,9 +51,7 @@ func TestWithQemu(t *testing.T) {
 	}
 	// Run QEMU instance
 	qemu, err := vmtest.NewQemu(&opts)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 	// Shutdown QEMU at the end of the test case
 	defer qemu.Shutdown()
 
@@ -66,25 +61,17 @@ func TestWithQemu(t *testing.T) {
 	}
 
 	conn, err := ssh.Dial("tcp", "localhost:10022", config)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 	defer conn.Close()
 
 	sess, err := conn.NewSession()
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 	defer sess.Close()
 
 	scpSess, err := conn.NewSession()
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
-	if err := scp.CopyPath("examples/devmapper.go.test", "devmapper.go.test", scpSess); err != nil {
-		t.Error(err)
-	}
+	require.NoError(t, scp.CopyPath("examples/devmapper.go.test", "devmapper.go.test", scpSess))
 
 	testCmd := "./devmapper.go.test"
 	if testing.Verbose() {
@@ -95,7 +82,5 @@ func TestWithQemu(t *testing.T) {
 	if testing.Verbose() {
 		fmt.Print(string(output))
 	}
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 }

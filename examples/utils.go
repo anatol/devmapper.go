@@ -9,6 +9,8 @@ import (
 	"regexp"
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/require"
 )
 
 const (
@@ -25,9 +27,7 @@ const (
 
 func checkDevInfo(t *testing.T, got, expected map[string]string) {
 	for k, v := range expected {
-		if got[k] != v {
-			t.Fatalf("Property '%s': expected %s, got %s", k, v, got[k])
-		}
+		require.Equalf(t, v, got[k], "property '%s'", k)
 	}
 }
 

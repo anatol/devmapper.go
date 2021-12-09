@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/anatol/devmapper.go"
+	"github.com/stretchr/testify/require"
 	"github.com/tych0/go-losetup"
 )
 
@@ -15,19 +16,13 @@ func TestCryptTarget(t *testing.T) {
 	dir := t.TempDir()
 	backingFile := dir + "/backing"
 	f, err := os.Create(backingFile)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 	defer f.Close()
 
-	if err := f.Truncate(40 * devmapper.SectorSize); err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, f.Truncate(40*devmapper.SectorSize))
 
 	loop, err := losetup.Attach(backingFile, 0, false)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 	defer loop.Detach()
 
 	key := make([]byte, 32)
@@ -44,15 +39,11 @@ func TestCryptTarget(t *testing.T) {
 			devmapper.CryptFlagSubmitFromCryptCPUs,
 		},
 	}
-	if err := devmapper.CreateAndLoad(name, uuid, 0, c); err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, devmapper.CreateAndLoad(name, uuid, 0, c))
 	defer devmapper.Remove(name)
 
 	got, err := devInfo(name)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 	checkDevInfo(t, got, map[string]string{
 		PropName:          name,
 		PropTargetsNum:    "1",
