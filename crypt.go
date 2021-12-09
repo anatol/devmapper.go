@@ -1,6 +1,7 @@
 package devmapper
 
 import (
+	"encoding/hex"
 	"strconv"
 	"strings"
 )
@@ -26,7 +27,8 @@ type CryptTable struct {
 	BackendDevice       string // device that stores the encrypted data
 	BackendOffset       uint64
 	Encryption          string
-	Key                 string // it could be a plain key or keyID in the keystore as ":32:logon:foobarkey"
+	Key                 []byte
+	KeyID               string // key id in the keystore e.g. ":32:logon:foobarkey"
 	IVTweak             uint64
 	Flags               []string
 }
@@ -44,7 +46,13 @@ func (c CryptTable) targetType() string {
 }
 
 func (c CryptTable) buildSpec() string {
-	args := []string{c.Encryption, c.Key, strconv.FormatUint(c.IVTweak, 10), c.BackendDevice, strconv.FormatUint(c.BackendOffset, 10)}
+	key := c.KeyID
+	if key == "" {
+		// dm-crypt requires hex-encoded password
+		key = hex.EncodeToString(c.Key)
+	}
+
+	args := []string{c.Encryption, key, strconv.FormatUint(c.IVTweak, 10), c.BackendDevice, strconv.FormatUint(c.BackendOffset, 10)}
 	args = append(args, strconv.Itoa(len(c.Flags)))
 	args = append(args, c.Flags...)
 

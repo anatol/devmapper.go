@@ -7,10 +7,11 @@ Here is an example that demonstrates the API usage:
 func main() {
     name := "crypttarget"
     uuid := "2f144136-b0de-4b51-b2eb-bd869cc39a6e"
+    key := make([]byte, 32)
     c := devmapper.CryptTable{
         Length:        60000, // size of the device in sectors
         Encryption:    "aes-xts-plain64",
-        Key:           "babebabebabebabebabebabebabebabebabebabebabebabebabebabebabebabe",
+        Key:           key,
         BackendDevice: "/dev/loop0",
         Flags:         []string{devmapper.CryptFlagAllowDiscards},
     }
@@ -36,14 +37,14 @@ func main() {
         return err
     }
     defer unlinkKey(kid)
-    keyid := fmt.Sprintf(":%v:logon:%v", len(volume.key), keyname)
+    keyid := fmt.Sprintf(":%v:logon:%v", len(key), keyname)
 
     name := "crypttarget"
     uuid := "2f144136-b0de-4b51-b2eb-bd869cc39a6e"
     c := devmapper.CryptTable{
         Length:        60000, // size of the device in sectors
         Encryption:    "aes-xts-plain64",
-        Key:           keyid,
+        KeyID:         keyid,
         BackendDevice: "/dev/loop0",
         Flags:         []string{devmapper.CryptFlagAllowDiscards},
     }

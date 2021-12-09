@@ -30,10 +30,11 @@ func TestCryptTarget(t *testing.T) {
 	}
 	defer loop.Detach()
 
+	key := make([]byte, 32)
 	c := devmapper.CryptTable{
 		Length:        40,
 		Encryption:    "aes-xts-plain64",
-		Key:           "babebabebabebabebabebabebabebabebabebabebabebabebabebabebabebabe",
+		Key:           key,
 		BackendDevice: loop.Path(),
 		Flags: []string{
 			devmapper.CryptFlagAllowDiscards,
