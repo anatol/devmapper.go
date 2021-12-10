@@ -30,7 +30,7 @@ func TestLinear(t *testing.T) {
 	defer loop.Detach()
 
 	l := devmapper.LinearTable{
-		Length:        15,
+		Length:        15 * devmapper.SectorSize,
 		BackendDevice: loop.Path(),
 	}
 	require.NoError(t, devmapper.CreateAndLoad(name, uuid, 0, l))

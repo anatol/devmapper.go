@@ -2,11 +2,12 @@ package devmapper
 
 // ZeroTable represents information needed for 'zero' target creation
 type ZeroTable struct {
-	StartSector, Length uint64
+	Start  uint64
+	Length uint64
 }
 
-func (z ZeroTable) startSector() uint64 {
-	return z.StartSector
+func (z ZeroTable) start() uint64 {
+	return z.Start
 }
 
 func (z ZeroTable) length() uint64 {

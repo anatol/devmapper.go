@@ -7,13 +7,14 @@ import (
 
 // LinearTable represents information needed for 'linear' target creation
 type LinearTable struct {
-	StartSector, Length uint64
-	BackendDevice       string
-	BackendOffset       uint64
+	Start         uint64
+	Length        uint64
+	BackendDevice string
+	BackendOffset uint64
 }
 
-func (l LinearTable) startSector() uint64 {
-	return l.StartSector
+func (l LinearTable) start() uint64 {
+	return l.Start
 }
 
 func (l LinearTable) length() uint64 {
@@ -25,6 +26,6 @@ func (l LinearTable) targetType() string {
 }
 
 func (l LinearTable) buildSpec() string {
-	args := []string{l.BackendDevice, strconv.FormatUint(l.BackendOffset, 10)}
+	args := []string{l.BackendDevice, strconv.FormatUint(l.BackendOffset/SectorSize, 10)}
 	return strings.Join(args, " ")
 }

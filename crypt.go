@@ -23,18 +23,19 @@ const (
 
 // CryptTable represents information needed for 'crypt' target creation
 type CryptTable struct {
-	StartSector, Length uint64
-	BackendDevice       string // device that stores the encrypted data
-	BackendOffset       uint64
-	Encryption          string
-	Key                 []byte
-	KeyID               string // key id in the keystore e.g. ":32:logon:foobarkey"
-	IVTweak             uint64
-	Flags               []string
+	Start         uint64
+	Length        uint64
+	BackendDevice string // device that stores the encrypted data
+	BackendOffset uint64
+	Encryption    string
+	Key           []byte
+	KeyID         string // key id in the keystore e.g. ":32:logon:foobarkey"
+	IVTweak       uint64
+	Flags         []string
 }
 
-func (c CryptTable) startSector() uint64 {
-	return c.StartSector
+func (c CryptTable) start() uint64 {
+	return c.Start
 }
 
 func (c CryptTable) length() uint64 {
@@ -52,7 +53,7 @@ func (c CryptTable) buildSpec() string {
 		key = hex.EncodeToString(c.Key)
 	}
 
-	args := []string{c.Encryption, key, strconv.FormatUint(c.IVTweak, 10), c.BackendDevice, strconv.FormatUint(c.BackendOffset, 10)}
+	args := []string{c.Encryption, key, strconv.FormatUint(c.IVTweak, 10), c.BackendDevice, strconv.FormatUint(c.BackendOffset/SectorSize, 10)}
 	args = append(args, strconv.Itoa(len(c.Flags)))
 	args = append(args, c.Flags...)
 

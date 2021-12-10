@@ -9,7 +9,7 @@ func main() {
     uuid := "2f144136-b0de-4b51-b2eb-bd869cc39a6e"
     key := make([]byte, 32)
     c := devmapper.CryptTable{
-        Length:        60000, // size of the device in sectors
+        Length:        60000 * 512, // size of the device in bytes
         Encryption:    "aes-xts-plain64",
         Key:           key,
         BackendDevice: "/dev/loop0",
@@ -42,7 +42,7 @@ func main() {
     name := "crypttarget"
     uuid := "2f144136-b0de-4b51-b2eb-bd869cc39a6e"
     c := devmapper.CryptTable{
-        Length:        60000, // size of the device in sectors
+        Length:        60000 * 512, // size of the device in bytes
         Encryption:    "aes-xts-plain64",
         KeyID:         keyid,
         BackendDevice: "/dev/loop0",

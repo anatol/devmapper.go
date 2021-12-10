@@ -72,8 +72,8 @@ func ioctlTable(cmd uintptr, name string, uuid string, flags uint32, primaryUdev
 		specData := (*unix.DmTargetSpec)(unsafe.Pointer(&data[idx]))
 		specSize := unix.SizeofDmTargetSpec + uintptr(roundUp(len(spec)+1, alignment))
 		specData.Next = uint32(specSize)
-		specData.Sector_start = t.startSector()
-		specData.Length = t.length()
+		specData.Sector_start = t.start() / SectorSize
+		specData.Length = t.length() / SectorSize
 		copy(specData.Target_type[:], t.targetType())
 		copy(data[idx+unix.SizeofDmTargetSpec:], spec)
 

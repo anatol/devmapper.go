@@ -11,7 +11,7 @@ import (
 func TestZeroTarget(t *testing.T) {
 	name := "test.zerotarget"
 	uuid := "2fa44836-b0de-4b51-b2eb-bd811cc39a6e"
-	z := devmapper.ZeroTable{Length: 200}
+	z := devmapper.ZeroTable{Length: 200 * devmapper.SectorSize}
 	require.NoError(t, devmapper.CreateAndLoad(name, uuid, 0, z))
 	defer devmapper.Remove(name)
 

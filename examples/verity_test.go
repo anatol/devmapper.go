@@ -22,7 +22,7 @@ func TestVerity(t *testing.T) {
 	_, err = d.WriteString("Hello verity!!!!")
 	require.NoError(t, err)
 
-	dataSize := 4096 * devmapper.SectorSize
+	dataSize := uint64(4096) * devmapper.SectorSize
 	require.NoError(t, d.Truncate(int64(dataSize)))
 	dLoop, err := losetup.Attach(dir+"/data", 0, false)
 	require.NoError(t, err)
@@ -46,7 +46,7 @@ func TestVerity(t *testing.T) {
 	require.NoError(t, err)
 
 	v := devmapper.VerityTable{
-		Length:        4096,
+		Length:        dataSize,
 		HashType:      1, // the same as props["Hash type"]
 		DataDevice:    dLoop.Path(),
 		HashDevice:    hLoop.Path(),

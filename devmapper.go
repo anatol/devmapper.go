@@ -17,7 +17,7 @@ const (
 
 // Table is a type to represent different devmapper targets like 'zero', 'crypt', ...
 type Table interface {
-	startSector() uint64
+	start() uint64
 	length() uint64
 	targetType() string
 	buildSpec() string // see https://wiki.gentoo.org/wiki/Device-mapper for examples of specs

@@ -19,7 +19,8 @@ func TestCryptTarget(t *testing.T) {
 	require.NoError(t, err)
 	defer f.Close()
 
-	require.NoError(t, f.Truncate(40*devmapper.SectorSize))
+	size := uint64(40) * devmapper.SectorSize
+	require.NoError(t, f.Truncate(int64(size)))
 
 	loop, err := losetup.Attach(backingFile, 0, false)
 	require.NoError(t, err)
@@ -27,7 +28,7 @@ func TestCryptTarget(t *testing.T) {
 
 	key := make([]byte, 32)
 	c := devmapper.CryptTable{
-		Length:        40,
+		Length:        size,
 		Encryption:    "aes-xts-plain64",
 		Key:           key,
 		BackendDevice: loop.Path(),

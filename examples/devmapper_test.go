@@ -100,8 +100,8 @@ func TestJoinedDevices(t *testing.T) {
 		defer loop.Detach()
 
 		l := devmapper.LinearTable{
-			StartSector:   5 * uint64(i),
-			Length:        5,
+			Start:         5 * uint64(i) * devmapper.SectorSize,
+			Length:        5 * devmapper.SectorSize,
 			BackendDevice: loop.Path(),
 		}
 
@@ -156,7 +156,7 @@ func TestSplitDevices(t *testing.T) {
 	name1 := "test.splittarget1"
 	uuid1 := "8fb63cb9-e92c-473e-bad2-3dffd17859e7"
 	l1 := devmapper.LinearTable{
-		Length:        5,
+		Length:        5 * devmapper.SectorSize,
 		BackendDevice: loop.Path(),
 		BackendOffset: 0,
 	}
@@ -166,9 +166,9 @@ func TestSplitDevices(t *testing.T) {
 	name2 := "test.splittarget2"
 	uuid2 := "790dd808-3b13-46e1-9d4a-42053580010c"
 	l2 := devmapper.LinearTable{
-		Length:        45,
+		Length:        45 * devmapper.SectorSize,
 		BackendDevice: loop.Path(),
-		BackendOffset: 5,
+		BackendOffset: 5 * devmapper.SectorSize,
 	}
 	require.NoError(t, devmapper.CreateAndLoad(name2, uuid2, 0, l2))
 	defer devmapper.Remove(name2)

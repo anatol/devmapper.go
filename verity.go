@@ -7,7 +7,8 @@ import (
 
 // VerityTable represents information needed for 'verity' target creation
 type VerityTable struct {
-	StartSector, Length           uint64
+	Start                         uint64
+	Length                        uint64
 	HashType                      uint64
 	DataDevice                    string // the device containing data, the integrity of which needs to be checked
 	HashDevice                    string // device that supplies the hash tree data
@@ -17,8 +18,8 @@ type VerityTable struct {
 	Params                        []string
 }
 
-func (v VerityTable) startSector() uint64 {
-	return v.StartSector
+func (v VerityTable) start() uint64 {
+	return v.Start
 }
 
 func (v VerityTable) length() uint64 {
