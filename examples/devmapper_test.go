@@ -231,3 +231,106 @@ func TestGetVersion(t *testing.T) {
 
 	require.Equal(t, []uint32{uint32(major), uint32(minor), uint32(patch)}, []uint32{gotMajor, gotMinor, gotPatch}, "device mapper version mismatch")
 }
+
+// create 3 files with 5 sectors each (3*512 bytes) then join it
+func TestUserspaceJoinedDevicesRead(t *testing.T) {
+	dir := t.TempDir()
+
+	targets := make([]devmapper.Table, 0, 3)
+
+	for i := 0; i < 3; i++ {
+		backingFile := dir + "/backing." + strconv.Itoa(i)
+		f, err := os.Create(backingFile)
+		require.NoError(t, err)
+		defer f.Close()
+
+		text := fmt.Sprintf("Hello, world %d !!!", i)
+		_, err = f.WriteString(text)
+		require.NoError(t, err)
+		require.NoError(t, f.Truncate(5*devmapper.SectorSize))
+
+		l := devmapper.LinearTable{
+			Start:         5 * uint64(i) * devmapper.SectorSize,
+			Length:        5 * devmapper.SectorSize,
+			BackendDevice: backingFile,
+		}
+
+		targets = append(targets, l)
+	}
+
+	v, err := devmapper.OpenUserspaceVolume(os.O_RDONLY, 0, targets...)
+	require.NoError(t, err)
+	defer v.Close()
+
+	buf := make([]byte, 15*devmapper.SectorSize)
+	n, err := v.ReadAt(buf, 0)
+	require.NoError(t, err)
+	require.Equal(t, 15*devmapper.SectorSize, n)
+
+	require.NoError(t, err)
+	expectedData := make([]byte, 15*devmapper.SectorSize)
+	copy(expectedData[0*devmapper.SectorSize:], "Hello, world 0 !!!")  // beginning of the 1st device
+	copy(expectedData[5*devmapper.SectorSize:], "Hello, world 1 !!!")  // beginning of the 2nd device
+	copy(expectedData[10*devmapper.SectorSize:], "Hello, world 2 !!!") // beginning of the 3rd device
+
+	require.Equal(t, expectedData, buf, "data read from the volume differs from the backing file")
+}
+
+// create 3 files with 5 sectors each (3*512 bytes) then join it
+func TestUserspaceJoinedDevicesWrite(t *testing.T) {
+	dir := t.TempDir()
+
+	targets := make([]devmapper.Table, 0, 3)
+
+	for i := 0; i < 3; i++ {
+		backingFile := dir + "/backing." + strconv.Itoa(i)
+		f, err := os.Create(backingFile)
+		require.NoError(t, err)
+		require.NoError(t, f.Truncate(5*devmapper.SectorSize))
+		f.Close()
+
+		l := devmapper.LinearTable{
+			Start:         5 * uint64(i) * devmapper.SectorSize,
+			Length:        5 * devmapper.SectorSize,
+			BackendDevice: backingFile,
+		}
+
+		targets = append(targets, l)
+	}
+
+	v, err := devmapper.OpenUserspaceVolume(os.O_RDWR, 0, targets...)
+	require.NoError(t, err)
+	defer v.Close()
+
+	for i := 0; i < 3; i++ {
+		buf := make([]byte, devmapper.SectorSize)
+		text := fmt.Sprintf("Hello, world %d !!!", i)
+		copy(buf, text)
+		n, err := v.WriteAt(buf, int64(5*i*devmapper.SectorSize))
+		require.NoError(t, err)
+		require.Equal(t, devmapper.SectorSize, n)
+	}
+
+	buf := make([]byte, 15*devmapper.SectorSize)
+	n, err := v.ReadAt(buf, 0)
+	require.NoError(t, err)
+	require.Equal(t, 15*devmapper.SectorSize, n)
+
+	expectedData := make([]byte, 15*devmapper.SectorSize)
+	copy(expectedData[0*devmapper.SectorSize:], "Hello, world 0 !!!")  // beginning of the 1st device
+	copy(expectedData[5*devmapper.SectorSize:], "Hello, world 1 !!!")  // beginning of the 2nd device
+	copy(expectedData[10*devmapper.SectorSize:], "Hello, world 2 !!!") // beginning of the 3rd device
+	require.Equal(t, expectedData, buf, "data read from the volume differs from the backing file")
+
+	for i := 0; i < 3; i++ {
+		backingFile := dir + "/backing." + strconv.Itoa(i)
+		buf, err := os.ReadFile(backingFile)
+		require.NoError(t, err)
+
+		expectedData := make([]byte, 5*devmapper.SectorSize)
+		text := fmt.Sprintf("Hello, world %d !!!", i)
+		copy(expectedData, text)
+
+		require.Equal(t, expectedData, buf)
+	}
+}

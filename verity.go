@@ -1,6 +1,7 @@
 package devmapper
 
 import (
+	"io/fs"
 	"strconv"
 	"strings"
 )
@@ -39,4 +40,22 @@ func (v VerityTable) buildSpec() string {
 
 	args = append(args, v.Params...)
 	return strings.Join(args, " ")
+}
+
+type verityVolume struct{}
+
+func (v VerityTable) openVolume(flag int, perm fs.FileMode) (Volume, error) {
+	return &verityVolume{}, nil
+}
+
+func (v verityVolume) ReadAt(p []byte, off int64) (n int, err error) {
+	return 0, errNotImplemented
+}
+
+func (v verityVolume) WriteAt(p []byte, off int64) (n int, err error) {
+	return 0, errNotImplemented
+}
+
+func (v verityVolume) Close() error {
+	return errNotImplemented
 }

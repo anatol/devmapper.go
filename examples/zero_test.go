@@ -34,3 +34,18 @@ func TestZeroTarget(t *testing.T) {
 	zeros := make([]byte, 200*devmapper.SectorSize)
 	require.Equal(t, zeros, data)
 }
+
+func TestUserspaceZeroTarget(t *testing.T) {
+	z := devmapper.ZeroTable{Length: 200 * devmapper.SectorSize}
+	v, err := devmapper.OpenUserspaceVolume(os.O_RDONLY, 0, z)
+	require.NoError(t, err)
+
+	buf := make([]byte, 512)
+	_, err = v.ReadAt(buf, 34)
+	require.Error(t, err)
+	_, err = v.ReadAt(buf, 1024)
+	require.NoError(t, err)
+
+	zeroBuf := make([]byte, 512)
+	require.Equal(t, zeroBuf, buf)
+}

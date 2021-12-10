@@ -2,6 +2,7 @@ package devmapper
 
 import (
 	"fmt"
+	"io/fs"
 	"unsafe"
 
 	"golang.org/x/sys/unix"
@@ -21,9 +22,10 @@ type Table interface {
 	length() uint64
 	targetType() string
 	buildSpec() string // see https://wiki.gentoo.org/wiki/Device-mapper for examples of specs
+	openVolume(flag int, perm fs.FileMode) (Volume, error)
 }
 
-var errNotImplemented = fmt.Errorf("Message functionality is not implemented")
+var errNotImplemented = fmt.Errorf("not implemented")
 
 // Create creates a new device. No table will be loaded. The device will be in
 // suspended state. Any IO to this device will fail.
