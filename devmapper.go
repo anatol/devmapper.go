@@ -77,16 +77,18 @@ func SetUUID(name, uuid string) error {
 	return errNotImplemented
 }
 
-// Remove remove the device and destroys its tables.
+// Remove removes the device and destroys its tables.
 func Remove(name string) error {
 	return ioctlTable(unix.DM_DEV_REMOVE, name, "", 0, true, nil)
 }
 
+// ListItem represents information about a dmsetup device
 type ListItem struct {
 	DevNo uint64
 	Name  string
 }
 
+// List provides a list of dmsetup devices
 func List() ([]ListItem, error) {
 	bufferSize := 4096
 
