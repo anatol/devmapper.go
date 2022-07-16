@@ -106,7 +106,6 @@ retry:
 	if ioctlData.Flags&unix.DM_BUFFER_FULL_FLAG != 0 {
 		if bufferSize >= 1024*1024 { // 1 MB
 			return nil, fmt.Errorf("ioctl(DM_LIST_DEVICES): output data is too big")
-
 		}
 		bufferSize *= 4
 		goto retry // retry with bigger buffer
