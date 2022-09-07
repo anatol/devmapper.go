@@ -38,7 +38,7 @@ type CryptTable struct {
 	KeyID         string // key id in the keystore e.g. ":32:logon:foobarkey"
 	IVTweak       uint64
 	Flags         []string // TODO: maybe convert it to bitflag instead?
-	SectorSize    uint64   // size of the sector the cypto device operates with
+	SectorSize    uint64   // size of the sector the crypto device operates with
 }
 
 func (c CryptTable) start() uint64 {

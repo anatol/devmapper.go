@@ -126,7 +126,7 @@ func (c combinedVolume) Close() error {
 }
 
 // OpenUserspaceVolume opens a volume that allows to read/write data.
-// It performs the data precessing at user-space level without using device-mapper kernel framework.
+// It performs the data processing at user-space level without using device-mapper kernel framework.
 // flag and perm parameters are applied to os.OpenFile() when opening the underlying files
 func OpenUserspaceVolume(flag int, perm fs.FileMode, tables ...Table) (Volume, error) {
 	ranges := make([]volumeRange, len(tables))
