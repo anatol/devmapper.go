@@ -4,11 +4,11 @@ go 1.17
 
 require (
 	github.com/anatol/vmtest v0.0.0-20220413190228-7a42f1f6d7b8
-	github.com/stretchr/testify v1.8.0
+	github.com/stretchr/testify v1.8.1
 	github.com/tmc/scp v0.0.0-20170824174625-f7b48647feef
 	github.com/tych0/go-losetup v0.0.0-20170407175016-fc9adea44124
-	golang.org/x/crypto v0.0.0-20220829220503-c86fa9a7ed90
-	golang.org/x/sys v0.0.0-20220907062415-87db552b00fd
+	golang.org/x/crypto v0.5.0
+	golang.org/x/sys v0.4.0
 )
 
 require (
