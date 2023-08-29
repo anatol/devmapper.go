@@ -1,7 +1,7 @@
 package test
 
 import (
-	"math/rand"
+	"crypto/rand"
 	"os"
 	"testing"
 
