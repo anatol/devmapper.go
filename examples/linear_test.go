@@ -5,8 +5,8 @@ import (
 	"testing"
 
 	"github.com/anatol/devmapper.go"
+	"github.com/freddierice/go-losetup/v2"
 	"github.com/stretchr/testify/require"
-	"github.com/tych0/go-losetup"
 )
 
 func TestLinear(t *testing.T) {
