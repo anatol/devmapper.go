@@ -1,16 +1,14 @@
 module github.com/anatol/devmapper.go
 
-go 1.23.0
-
-toolchain go1.24.1
+go 1.26
 
 require (
-	github.com/anatol/vmtest v0.0.0-20230711210602-87511df0d4bc
+	github.com/anatol/vmtest v0.0.0-20260313235012-c2b0479898b4
 	github.com/freddierice/go-losetup/v2 v2.0.1
-	github.com/stretchr/testify v1.10.0
+	github.com/stretchr/testify v1.11.1
 	github.com/tmc/scp v0.0.0-20170824174625-f7b48647feef
-	golang.org/x/crypto v0.36.0
-	golang.org/x/sys v0.31.0
+	golang.org/x/crypto v0.49.0
+	golang.org/x/sys v0.42.0
 )
 
 require (
