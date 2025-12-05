@@ -44,10 +44,9 @@ func (c combinedVolume) ReadAt(buf []byte, off int64) (int, error) {
 	// the incoming buffer might be split between multiple tables
 	for _, r := range c.ranges {
 		if offset >= r.start && offset < r.start+r.len {
-			rlen := r.start + r.len - offset // this is how much is going to be handled by this range
-			if rlen > length {
-				rlen = length
-			}
+			rlen := min(
+				// this is how much is going to be handled by this range
+				r.start+r.len-offset, length)
 			rbuf := buf[:rlen]
 			roff := offset - r.start
 			n, err := r.volume.ReadAt(rbuf, int64(roff))
@@ -90,10 +89,9 @@ func (c combinedVolume) WriteAt(buf []byte, off int64) (n int, err error) {
 	// the incoming buffer might be split between multiple tables
 	for _, r := range c.ranges {
 		if offset >= r.start && offset < r.start+r.len {
-			rlen := r.start + r.len - offset // this is how much is going to be handled by this range
-			if rlen > length {
-				rlen = length
-			}
+			rlen := min(
+				// this is how much is going to be handled by this range
+				r.start+r.len-offset, length)
 			rbuf := buf[:rlen]
 			roff := offset - r.start
 			n, err := r.volume.WriteAt(rbuf, int64(roff))
