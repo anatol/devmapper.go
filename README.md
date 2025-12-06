@@ -69,6 +69,63 @@ func unlinkKey(kid int) {
 }
 ```
 
+## Snapshot Target
+
+The library supports device mapper snapshot targets for creating point-in-time copies of block devices.
+
+### Snapshot-Origin Target
+
+A snapshot-origin target represents the original device being protected by snapshots. When writes occur to the origin device, the original data is copied to a Copy-on-Write (CoW) device before being overwritten.
+
+```go
+func main() {
+    name := "original-device"
+    uuid := "550e8400-e29b-41d4-a716-446655440000"
+
+    snapOrigin := devmapper.SnapshotOriginTable{
+		Device: "/dev/sda",
+		Start:  0,
+		Length: 100 * 512, // Length of the block device, 100 sectors = 50KB
+	}
+
+    if err := devmapper.CreateAndLoad(name, uuid, 0, snapOrigin); err != nil {
+        // handle error
+    }
+    defer devmapper.Remove(name)
+}
+```
+
+### Snapshot Target
+
+A snapshot target provides a consistent view of the origin device at the time the snapshot was created. Multiple independent snapshots can be created from the same origin.
+
+```go
+func main() {
+    // Assume origin device /dev/mapper/origin-device exists
+    // and CoW device /dev/mapper/cow-storage is allocated
+
+    name := "snapshot-1"
+    uuid := "550e8400-e29b-41d4-a716-446655440001"
+
+    snapshot := devmapper.SnapshotTable{
+        Length:         100 * 512,              // Same size as origin
+        OriginDevice:   "/dev/mapper/origin-device",
+        CowDevice:      "/dev/mapper/cow-storage",
+        ChunkSize:      16,                     // Chunk size in sectors (must be power of 2)
+        Persistent:     true,
+    }
+
+    if err := devmapper.CreateAndLoad(name, uuid, 0, snapshot); err != nil {
+        // handle error
+    }
+    defer devmapper.Remove(name)
+
+    // The snapshot is now active and ready to use
+    // Reading from /dev/mapper/snapshot-1 returns data from the origin device
+    // Writes to the origin device automatically trigger copy-on-write operations
+}
+```
+
 ## License
 
 See [LICENSE](LICENSE).
