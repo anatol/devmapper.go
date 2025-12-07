@@ -84,7 +84,7 @@ func TestJoinedDevices(t *testing.T) {
 
 	targets := make([]devmapper.Table, 0, 3)
 
-	for i := 0; i < 3; i++ {
+	for i := range 3 {
 		backingFile := dir + "/backing." + strconv.Itoa(i)
 		f, err := os.Create(backingFile)
 		require.NoError(t, err)
@@ -238,7 +238,7 @@ func TestUserspaceJoinedDevicesRead(t *testing.T) {
 
 	targets := make([]devmapper.Table, 0, 3)
 
-	for i := 0; i < 3; i++ {
+	for i := range 3 {
 		backingFile := dir + "/backing." + strconv.Itoa(i)
 		f, err := os.Create(backingFile)
 		require.NoError(t, err)
@@ -282,7 +282,7 @@ func TestUserspaceJoinedDevicesWrite(t *testing.T) {
 
 	targets := make([]devmapper.Table, 0, 3)
 
-	for i := 0; i < 3; i++ {
+	for i := range 3 {
 		backingFile := dir + "/backing." + strconv.Itoa(i)
 		f, err := os.Create(backingFile)
 		require.NoError(t, err)
@@ -302,7 +302,7 @@ func TestUserspaceJoinedDevicesWrite(t *testing.T) {
 	require.NoError(t, err)
 	defer v.Close()
 
-	for i := 0; i < 3; i++ {
+	for i := range 3 {
 		buf := make([]byte, devmapper.SectorSize)
 		text := fmt.Sprintf("Hello, world %d !!!", i)
 		copy(buf, text)
@@ -322,7 +322,7 @@ func TestUserspaceJoinedDevicesWrite(t *testing.T) {
 	copy(expectedData[10*devmapper.SectorSize:], "Hello, world 2 !!!") // beginning of the 3rd device
 	require.Equal(t, expectedData, buf, "data read from the volume differs from the backing file")
 
-	for i := 0; i < 3; i++ {
+	for i := range 3 {
 		backingFile := dir + "/backing." + strconv.Itoa(i)
 		buf, err := os.ReadFile(backingFile)
 		require.NoError(t, err)
