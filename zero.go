@@ -31,6 +31,7 @@ func (z ZeroTable) openVolume(flag int, perm fs.FileMode) (Volume, error) {
 }
 
 func (z zeroVolume) ReadAt(p []byte, off int64) (n int, err error) {
+	clear(p)
 	return len(p), nil
 }
 
