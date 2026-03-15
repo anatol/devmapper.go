@@ -60,7 +60,7 @@ func (c CryptTable) buildSpec() string {
 		key = hex.EncodeToString(c.Key)
 	}
 
-	flags := c.Flags
+	flags := append([]string{}, c.Flags...) // copy to avoid mutating the caller's Flags slice
 	if c.SectorSize != 0 && c.SectorSize != SectorSize {
 		flags = append(flags, "sector_size:"+strconv.Itoa(int(c.SectorSize)))
 	}
