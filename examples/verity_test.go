@@ -87,6 +87,6 @@ func TestVerity(t *testing.T) {
 	_, err = d.WriteAt([]byte{'h'}, 0)
 	require.NoError(t, err)
 	_, err = os.ReadFile(mapper)
-	require.NotNil(t, "expected EIO if backing device is corrupted")
+	require.Error(t, err, "expected EIO if backing device is corrupted")
 	require.ErrorIs(t, err, unix.EIO, "unexpected error on verity corruption")
 }
